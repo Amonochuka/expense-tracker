@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	db.InitDB("expenses.db")
+	db.InitDB("expenses.db", "migrations/create_expenses.sql")
 
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Println("Welcome to Expense tracker CLI")
@@ -81,7 +81,7 @@ func addExpense(scanner *bufio.Scanner) {
 
 	err = db.AddExpense(exp)
 	if err != nil {
-		fmt.Println("Error adding expense")
+		fmt.Println("Error adding expense :", err)
 	} else {
 		fmt.Println("Expense added successfully")
 	}

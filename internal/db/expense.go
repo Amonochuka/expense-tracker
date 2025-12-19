@@ -7,10 +7,19 @@ import (
 )
 
 // add new expense
-func AddExpense(exp models.Expense) error {
-	query := `INSERT INTO expenses(description, amount, category, date) VALUES (?,?,?,?)`
-	_, err := DB.Exec(query, exp.Description, exp.Amount, exp.Category, exp.Date)
-	return err
+func AddExpense(e models.Expense) error {
+	fmt.Printf("DEBUG: Adding expense: %+v\n", e) // debug
+
+	query := `INSERT INTO expenses(description, amount, category, date) VALUES (?, ?, ?, ?)`
+	res, err := DB.Exec(query, e.Description, e.Amount, e.Category, e.Date)
+	if err != nil {
+		fmt.Println("DEBUG: DB.Exec error:", err)
+		return err
+	}
+
+	affected, _ := res.RowsAffected()
+	fmt.Println("DEBUG: Rows affected:", affected)
+	return nil
 }
 
 // list expense
