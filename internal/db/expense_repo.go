@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"expense-tracker/internal/models"
 	"fmt"
-	"time"
 )
 
 type ExpenseRepo struct {
@@ -80,13 +79,6 @@ func (r *ExpenseRepo) FilterExpensesByCategory(category string) ([]models.Expens
 
 func (r *ExpenseRepo) FilterExpensesByDate(start, end string) ([]models.Expense, error) {
 	//validate time
-	if _, err := time.Parse("2006-01-02", start); err != nil {
-		return nil, fmt.Errorf("invalid start date format :%v", err)
-	}
-
-	if _, err := time.Parse("2006-01-02", end); err != nil {
-		return nil, fmt.Errorf("invalid end date format : %v", err)
-	}
 	rows, err := r.db.Query(`SELECT id, description, amount, category, date FROM expenses 
               WHERE date BETWEEN ? AND ? ORDER BY date`, start, end)
 	if err != nil {

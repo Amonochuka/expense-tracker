@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"expense-tracker/internal/db"
 	"expense-tracker/internal/models"
+	"expense-tracker/internal/service"
 	"fmt"
 	"os"
 	"strconv"
@@ -15,6 +16,7 @@ func main() {
 	db.InitDB("expenses.db")
 
 	expenseRepo := db.NewExpenseRepo(db.DB)
+	service := service.NewExpenseService(expenseRepo)
 
 	scanner := bufio.NewScanner(os.Stdin)
 	fmt.Println("Welcome to Expense tracker CLI")
@@ -29,17 +31,17 @@ func main() {
 
 		switch input {
 		case "add":
-			addExpense(scanner, expenseRepo)
+			addExpense(scanner, service)
 		case "list":
-			listExpenses(expenseRepo)
+			listExpenses(service)
 		case "filter-category":
-			filterExpensesByCategory(scanner, expenseRepo)
+			filterExpensesByCategory(scanner, service)
 		case "filter-date":
-			filterExpensesByDate(scanner, expenseRepo)
+			filterExpensesByDate(scanner, service)
 		case "delete":
-			deleteExpenses(scanner, expenseRepo)
+			deleteExpenses(scanner, service)
 		case "totals":
-			showTotals(expenseRepo)
+			showTotals(service)
 		case "exit":
 			fmt.Println("Exiting...")
 			return
@@ -49,7 +51,7 @@ func main() {
 	}
 }
 
-func addExpense(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
+func addExpense(scanner *bufio.Scanner, svc *service.ExpenseService) {
 	fmt.Print("Description :")
 	scanner.Scan()
 	desc := scanner.Text()
@@ -60,11 +62,6 @@ func addExpense(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
 	amount, err := strconv.ParseFloat(amtstr, 64)
 	if err != nil {
 		fmt.Println("Invalid Amount")
-		return
-	}
-
-	if amount < 0 {
-		fmt.Println("Amount cannot be negative!")
 		return
 	}
 
@@ -86,7 +83,7 @@ func addExpense(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
 		Date:        date,
 	}
 
-	err = repo.AddExpense(exp)
+	err = svc.AddExpense(exp)
 	if err != nil {
 		fmt.Println("Error adding expense :", err)
 	} else {
@@ -94,8 +91,8 @@ func addExpense(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
 	}
 }
 
-func listExpenses(repo *db.ExpenseRepo) {
-	expenses, err := repo.ListExpense()
+func listExpenses(svc *service.ExpenseService) {
+	expenses, err := svc.ListExpense()
 	if err != nil {
 		fmt.Println("Error listing expenses:", err)
 		return
@@ -109,7 +106,7 @@ func listExpenses(repo *db.ExpenseRepo) {
 	}
 }
 
-func deleteExpenses(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
+func deleteExpenses(scanner *bufio.Scanner, svc *service.ExpenseService) {
 	fmt.Print("Enter ID to delete:")
 	scanner.Scan()
 	idstr := scanner.Text()
@@ -119,7 +116,7 @@ func deleteExpenses(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
 		return
 	}
 
-	err = repo.DeleteExpense(id)
+	err = svc.DeleteExpense(id)
 	if err != nil {
 		fmt.Println("Error deleting expense:", err)
 	} else {
@@ -127,12 +124,12 @@ func deleteExpenses(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
 	}
 }
 
-func filterExpensesByCategory(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
+func filterExpensesByCategory(scanner *bufio.Scanner, svc *service.ExpenseService) {
 	fmt.Print("Enter category: ")
 	scanner.Scan()
 	category := scanner.Text()
 
-	expenses, err := repo.FilterExpensesByCategory(category)
+	expenses, err := svc.FilterExpensesByCategory(category)
 	if err != nil {
 		fmt.Println("Error filtering by that category !:", err)
 		return
@@ -146,7 +143,7 @@ func filterExpensesByCategory(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
 	}
 }
 
-func filterExpensesByDate(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
+func filterExpensesByDate(scanner *bufio.Scanner, svc *service.ExpenseService) {
 	fmt.Print("Enter start date: ")
 	scanner.Scan()
 	start := scanner.Text()
@@ -155,7 +152,7 @@ func filterExpensesByDate(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
 	scanner.Scan()
 	end := scanner.Text()
 
-	expenses, err := repo.FilterExpensesByDate(start, end)
+	expenses, err := svc.FilterExpensesByDate(start, end)
 	if err != nil {
 		fmt.Println("Error filtering!:", err)
 		return
@@ -169,8 +166,8 @@ func filterExpensesByDate(scanner *bufio.Scanner, repo *db.ExpenseRepo) {
 	}
 }
 
-func showTotals(repo *db.ExpenseRepo) {
-	totals, err := repo.GetCategoryTotals()
+func showTotals(svc *service.ExpenseService) {
+	totals, err := svc.GetCategoryTotals()
 	if err != nil {
 		fmt.Println("Error calculating totals:", err)
 		return
