@@ -1,7 +1,7 @@
 package models
 
 type Expense struct {
-	ID          int
+	ID          int64
 	Description string
 	Amount      float64
 	Category    string
